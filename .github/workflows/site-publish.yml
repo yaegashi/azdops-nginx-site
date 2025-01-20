@@ -1,0 +1,30 @@
+name: Site Publish
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  site-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Rclone setup
+        run: |
+          curl https://rclone.org/install.sh | sudo bash
+      - name: MkDocs Build
+        run: |
+          set -x
+          python3 -m pip install --upgrade pip
+          python3 -m pip install -r requirements.txt
+          mkdocs build
+      - name: Rclone Sync
+        run: |
+          set -x
+          ./nginxsiteops.sh rclone-config
+          ./nginxsiteops.sh rclone-sync
+        env:
+          NGINX_SITE_SAS_URL: ${{ secrets.NGINX_SITE_SAS_URL }}
