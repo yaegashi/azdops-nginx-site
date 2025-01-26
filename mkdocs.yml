@@ -1,5 +1,5 @@
-site_name: DX2DEVOPS MkDocs Sample
-repo_url: https://github.com/yaegashi/dx2devops-mkdocs
+site_name: AZDOPS MkDocs Sample
+repo_url: https://github.com/yaegashi/azdops-mkdocs
 edit_uri: blob/main/docs/
 
 plugins:
