@@ -28,6 +28,12 @@ confirm() {
 	exit 1
 }
 
+cmd_site_build() {
+	run mkdocs build -f docs/en/mkdocs.yml
+	run mkdocs build -f docs/ja/mkdocs.yml
+	run cp docs/index.html site/index.html
+}
+
 cmd_rclone_config() {
 	if test -z "$NGINX_SITE_SAS_URL"; then
 		eval $(run azd env get-values)
@@ -41,8 +47,8 @@ cmd_rclone_config() {
 }
 
 cmd_rclone_sync() {
-	run rclone sync --verbose site/. remote:data/site/.
-	run rclone sync --verbose templates/. remote:templates/.
+	run rclone sync -vP --filter-from rclone-filter.txt site/. remote:data/site/.
+	run rclone sync -vP templates/. remote:templates/.
 }
 
 cmd_help() {
@@ -55,6 +61,7 @@ cmd_help() {
 	msg "  --replica <name>           - Specify replica name"
 	msg "  --container <name>         - Specify container name"
 	msg "Commands:"
+	msg "  site-build                 - Site: build"
 	msg "  rclone-config              - Rclone: config"
 	msg "  rclone-sync                - Rclone: sync"
 	exit $1
@@ -97,6 +104,10 @@ if test $# -eq 0; then
 fi
 
 case "$1" in
+	site-build)
+		shift
+		cmd_site_build "$@"
+		;;
 	rclone-config)
 		shift
 		cmd_rclone_config "$@"

@@ -1,0 +1,7 @@
++ /index.html
++ /{en,ja}/*.html
++ /{en,ja}/*.xml
++ /{en,ja}/*.xml.gz
++ /{en,ja}/assets/**
++ /{en,ja}/search/**
+- /**

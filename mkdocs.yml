@@ -1,9 +1,0 @@
-site_name: AZDOPS MkDocs Sample
-repo_url: https://github.com/yaegashi/azdops-mkdocs
-edit_uri: blob/main/docs/
-
-plugins:
-  - techdocs-core:
-
-nav:
-  - Introduction: index.md

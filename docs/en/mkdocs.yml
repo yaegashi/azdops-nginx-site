@@ -1,0 +1,26 @@
+site_name: Documentation
+
+site_dir: ../../site/en
+site_url: https://example.com/en/
+repo_url: https://github.com/yaegashi/azdops-nginx-site
+edit_uri: blob/main/docs/en/docs
+
+theme:
+  name: material
+  language: en
+
+extra:
+  alternate:
+    - name: English
+      link: /en/
+      lang: en
+    - name: 日本語
+      link: /ja/
+      lang: ja
+
+plugins:
+  - search:
+      lang: en
+
+nav:
+  - index.md

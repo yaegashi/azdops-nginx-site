@@ -15,15 +15,15 @@ jobs:
       - name: Rclone setup
         run: |
           curl https://rclone.org/install.sh | sudo bash
-      - name: MkDocs Build
+      - name: MkDocs setup
         run: |
           set -x
           python3 -m pip install --upgrade pip
           python3 -m pip install -r requirements.txt
-          mkdocs build
-      - name: Rclone Sync
+      - name: Rclone and sync
         run: |
           set -x
+          ./nginxsiteops.sh site-build
           ./nginxsiteops.sh rclone-config
           ./nginxsiteops.sh rclone-sync
         env:

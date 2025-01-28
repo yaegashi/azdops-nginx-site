@@ -1,3 +1,6 @@
+---
+title: Introduction
+---
 # Introduction
 
 This is the [MkDocs] template repository to deploy static web sites using [azdops-nginx-aca].
