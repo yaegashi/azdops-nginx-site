@@ -8,6 +8,10 @@ edit_uri: blob/main/docs/en/docs
 theme:
   name: material
   language: en
+  features:
+    - navigation.top
+    - content.action.edit
+    - content.code.copy
 
 extra:
   alternate:
@@ -21,6 +25,18 @@ extra:
 plugins:
   - search:
       lang: en
+  - glightbox
+  - git-revision-date-localized:
+      enable_creation_date: true
+      type: datetime
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.blocks.caption
+  - pymdownx.details
+  - pymdownx.superfences
 
 nav:
   - index.md
