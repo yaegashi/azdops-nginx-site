@@ -1,8 +1,16 @@
 name: Site Publish
 
 on:
+  push:
+    branches:
+      - main
   pull_request:
   workflow_dispatch:
+    inputs:
+      SITE_NAME:
+        type: string
+        required: false
+        description: Site name override
 
 permissions:
   contents: read
@@ -12,11 +20,13 @@ jobs:
   site-publish:
     runs-on: ubuntu-latest
     env:
-      PREVIEW_PREFIX: ''
+      SITE_NAME: ${{ inputs.SITE_NAME }}
       PREVIEW_URL: ''
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Rclone setup
         run: |
           curl https://rclone.org/install.sh | sudo bash
@@ -25,23 +35,42 @@ jobs:
           set -x
           python3 -m pip install --upgrade pip
           python3 -m pip install -r requirements.txt
-      - name: Set preview variables for PRs
-        if: github.event_name == 'pull_request' && vars.PREVIEW_HOSTNAME != ''
-        run: |
-          PREVIEW_PREFIX="pr-${{ github.event.number }}-${{ github.sha }}"
-          PREVIEW_URL="https://${PREVIEW_PREFIX}.${{ vars.PREVIEW_HOSTNAME }}"
-          echo "PREVIEW_PREFIX=${PREVIEW_PREFIX}" >> $GITHUB_ENV
-          echo "PREVIEW_URL=${PREVIEW_URL}" >> $GITHUB_ENV
-      - name: Build and sync
+      - name: MkDocs build
         run: |
           set -x
           ./nginxsiteops.sh site-build
-          ./nginxsiteops.sh rclone-config
-          ./nginxsiteops.sh rclone-sync $PREVIEW_PREFIX
+      - name: Set env variables for pushs and manual triggers
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        run: |
+          set -x
+          SITE_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr /. -)
+          echo "SITE_NAME=${SITE_NAME}" >> $GITHUB_ENV
+      - name: Set env variables for PRs
+        if: github.event_name == 'pull_request' && vars.PREVIEW_URL != ''
+        run: |
+          set -x
+          SITE_NAME="pr-${{ github.event.number }}-${{ github.sha }}"
+          PREVIEW_URL=${PREVIEW_URL#*//}
+          PREVIEW_URL="https://${SITE_NAME}.${PREVIEW_URL}"
+          echo "SITE_NAME=${SITE_NAME}" >> $GITHUB_ENV
+          echo "PREVIEW_URL=${PREVIEW_URL}" >> $GITHUB_ENV
+          ./nginxsiteops.sh rclone-sync $SITE_NAME
+        env:
+          PREVIEW_URL: ${{ vars.PREVIEW_URL }}
+      - name: Rclone sync
+        id: rclone_sync
+        if: env.SITE_NAME != ''
+        run: |
+          set -x
+          if test -n "$NGINX_SITE_SAS_URL"; then
+            ./nginxsiteops.sh rclone-config
+            ./nginxsiteops.sh rclone-sync $SITE_NAME
+            echo "::set-output name=done::true"
+          fi
         env:
           NGINX_SITE_SAS_URL: ${{ secrets.NGINX_SITE_SAS_URL }}
       - name: Post preview URL to PR
-        if: github.event_name == 'pull_request' && vars.PREVIEW_HOSTNAME != ''
+        if: github.event_name == 'pull_request' && vars.PREVIEW_URL != '' && steps.rclone_sync.outputs.done == 'true'
         uses: actions/github-script@v6
         with:
           script: |
