@@ -1,14 +1,19 @@
 name: Site Publish
 
 on:
+  pull_request:
   workflow_dispatch:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   site-publish:
     runs-on: ubuntu-latest
+    env:
+      PREVIEW_PREFIX: ''
+      PREVIEW_URL: ''
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -20,11 +25,31 @@ jobs:
           set -x
           python3 -m pip install --upgrade pip
           python3 -m pip install -r requirements.txt
-      - name: Rclone and sync
+      - name: Set preview variables for PRs
+        if: github.event_name == 'pull_request' && vars.PREVIEW_HOSTNAME != ''
+        run: |
+          PREVIEW_PREFIX="pr-${{ github.event.number }}-${{ github.sha }}"
+          PREVIEW_URL="https://${PREVIEW_PREFIX}.${{ vars.PREVIEW_HOSTNAME }}"
+          echo "PREVIEW_PREFIX=${PREVIEW_PREFIX}" >> $GITHUB_ENV
+          echo "PREVIEW_URL=${PREVIEW_URL}" >> $GITHUB_ENV
+      - name: Build and sync
         run: |
           set -x
           ./nginxsiteops.sh site-build
           ./nginxsiteops.sh rclone-config
-          ./nginxsiteops.sh rclone-sync
+          ./nginxsiteops.sh rclone-sync $PREVIEW_PREFIX
         env:
           NGINX_SITE_SAS_URL: ${{ secrets.NGINX_SITE_SAS_URL }}
+      - name: Post preview URL to PR
+        if: github.event_name == 'pull_request' && vars.PREVIEW_HOSTNAME != ''
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body: `Preview URL: ${process.env.PREVIEW_URL}`
+            });
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
