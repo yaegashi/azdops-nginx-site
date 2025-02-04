@@ -54,7 +54,6 @@ jobs:
           PREVIEW_URL="https://${SITE_NAME}.${PREVIEW_URL}"
           echo "SITE_NAME=${SITE_NAME}" >> $GITHUB_ENV
           echo "PREVIEW_URL=${PREVIEW_URL}" >> $GITHUB_ENV
-          ./nginxsiteops.sh rclone-sync $SITE_NAME
         env:
           PREVIEW_URL: ${{ vars.PREVIEW_URL }}
       - name: Rclone sync
@@ -65,7 +64,7 @@ jobs:
           if test -n "$NGINX_SITE_SAS_URL"; then
             ./nginxsiteops.sh rclone-config
             ./nginxsiteops.sh rclone-sync $SITE_NAME
-            echo "::set-output name=done::true"
+            echo 'done=true' >> $GITHUB_OUTPUT
           fi
         env:
           NGINX_SITE_SAS_URL: ${{ secrets.NGINX_SITE_SAS_URL }}
