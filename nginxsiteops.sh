@@ -47,9 +47,9 @@ cmd_rclone_config() {
 }
 
 cmd_rclone_sync() {
-	SITE_NAME=${1-main}
+	SITE_NAME=${1-default}
 	msg "Syncing to remote site: $SITE_NAME"
-	run rclone sync -vP --filter-from rclone-filter.txt site/. remote:data/sites/$SITE_NAME/.
+	run rclone sync -vP --filter-from rclone-filter.txt site/. remote:sites/$SITE_NAME/.
 	run rclone sync -vP templates/. remote:templates/.
 }
 
@@ -59,9 +59,6 @@ cmd_help() {
 	msg "  --help,-h                  - Show this help"
 	msg "  --no-prompt                - Do not ask for confirmation"
 	msg "  --verbose, -v              - Show detailed output"
-	msg "  --revision <name>          - Specify revision name"
-	msg "  --replica <name>           - Specify replica name"
-	msg "  --container <name>         - Specify container name"
 	msg "Commands:"
 	msg "  site-build                 - Site: build"
 	msg "  rclone-config              - Rclone: config"
